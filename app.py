@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 app.config.update(
     FSD_HOST = os.environ.get('FSD_HOST', ''),
-    FSD_PORT = os.environ.get('FSD_PORT', 3306),
+    FSD_PORT = int(os.environ.get('FSD_PORT', 3306)),
     FSD_USER = os.environ.get('FSD_USER', ''),
     FSD_PASS = os.environ.get('FSD_PASS', ''),
     FSD_DB = os.environ.get('FSD_DB', ''))
