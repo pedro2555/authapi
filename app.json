@@ -1,0 +1,6 @@
+{
+  "name": "Authentication API",
+  "description": "",
+  "repository": "https://github.com/pedro2555/authapi",
+  "keywords": ["python", "Flask" ]
+}
