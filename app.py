@@ -3,6 +3,8 @@
 from flask import Flask
 from flask import request
 from random import randint
+from redis import StrictRedis, ConnectionPool
+from secrets import token_hex
 import os
 import base64
 import pymysql
@@ -14,7 +16,8 @@ app.config.update(
     FSD_PORT = int(os.environ.get('FSD_PORT', 3306)),
     FSD_USER = os.environ.get('FSD_USER', ''),
     FSD_PASS = os.environ.get('FSD_PASS', ''),
-    FSD_DB = os.environ.get('FSD_DB', ''))
+    FSD_DB = os.environ.get('FSD_DB', ''),
+    REDIS_URL = os.environ.get('REDIS_URL', ''))
 
 if 'PORT' in os.environ:
     port = os.environ.get('PORT')
@@ -60,6 +63,11 @@ def validate_credentials(username, password):
 def random_assr():
     return ''.join([str(randint(0, 7)) for n in [0, 0, 0, 0]])
 
+def get_redis():
+    redis = StrictRedis()
+    redis.connection_pool = ConnectionPool.from_url(app.config['REDIS_URL'])
+    return redis
+
 @app.route('/login')
 def login():
     authorization = decode_auth_header(request.headers)
@@ -69,8 +77,37 @@ def login():
     user = validate_credentials(*authorization)
     if not user:
         return 'invalid credentials', 401
+    username, _ = authorization
+    assr = random_assr()
 
-    return random_assr(), 200
+    redis = get_redis()
+    redis.set(assr, username)
+    redis.expire(assr, 180)
+
+    return assr, 200
+
+def authorize(assr):
+    redis = get_redis()
+    user = redis.get(assr)
+
+    if not user:
+        return None
+
+    token = token_hex(16)
+    redis.set(token, user)
+    redis.expire(token, 86400)
+    redis.delete(assr)
+
+    return token
+
+@app.route('/token/<assr>')
+def token(assr):
+    token = authorize(assr)
+
+    if not token:
+        return '', 404
+
+    return token, 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port, debug=debug)
