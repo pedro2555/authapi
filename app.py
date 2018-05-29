@@ -82,7 +82,7 @@ def login():
 
     redis = get_redis()
     redis.set(assr, username)
-    redis.expire(assr, 180)
+    redis.expire(assr, 300)
 
     return assr, 200
 
