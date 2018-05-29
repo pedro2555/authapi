@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
 from flask import request
-from random import randint
 from redis import StrictRedis, ConnectionPool
-from secrets import token_hex
+from secrets import token_hex, choice
 import os
 import base64
 import pymysql
@@ -61,7 +60,8 @@ def validate_credentials(username, password):
     return 'authorized' if loggedin > 0 else None
 
 def random_assr():
-    return ''.join([str(randint(0, 7)) for n in [0, 0, 0, 0]])
+    alphabet = range(0, 7)
+    return ''.join([str(choice(alphabet)) for _ in range(4)])
 
 def get_redis():
     redis = StrictRedis()
