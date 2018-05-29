@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
 from flask import request
+from random import randint
 import os
 import base64
 import pymysql
@@ -56,6 +57,9 @@ def validate_credentials(username, password):
 
     return 'authorized' if loggedin > 0 else None
 
+def random_assr():
+    return ''.join([str(randint(0, 7)) for n in [0, 0, 0, 0]])
+
 @app.route('/login')
 def login():
     authorization = decode_auth_header(request.headers)
@@ -66,7 +70,7 @@ def login():
     if not user:
         return 'invalid credentials', 401
 
-    return '4700', 200
+    return random_assr(), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port, debug=debug)
