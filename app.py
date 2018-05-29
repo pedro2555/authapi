@@ -16,7 +16,9 @@ app.config.update(
     FSD_USER = os.environ.get('FSD_USER', ''),
     FSD_PASS = os.environ.get('FSD_PASS', ''),
     FSD_DB = os.environ.get('FSD_DB', ''),
-    REDIS_URL = os.environ.get('REDIS_URL', ''))
+    REDIS_URL = os.environ.get('REDIS_URL', ''),
+    ASSR_LIFETIME = int(os.environ.get('ASSR_LIFETIME', 300)),
+    TOKEN_LIFETIME = int(os.environ.get('TOKEN_LIFETIME', 86400)))
 
 if 'PORT' in os.environ:
     port = os.environ.get('PORT')
@@ -82,7 +84,7 @@ def login():
 
     redis = get_redis()
     redis.set(assr, username)
-    redis.expire(assr, 300)
+    redis.expire(assr, app.config['ASSR_LIFETIME'])
 
     return assr, 200
 
@@ -95,7 +97,7 @@ def authorize(assr):
 
     token = token_hex(16)
     redis.set(token, user)
-    redis.expire(token, 86400)
+    redis.expire(token, app.config['TOKEN_LIFETIME'])
     redis.delete(assr)
 
     return token
